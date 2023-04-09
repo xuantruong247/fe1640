@@ -1,0 +1,20 @@
+.man-den {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: black;
+  z-index: 2;
+  opacity: 0.7;
+}
+
+
+.login-title {
+  position: absolute;
+  width:100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  color: white;
+}
