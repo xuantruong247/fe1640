@@ -7,6 +7,7 @@ import { GrView } from "react-icons/gr";
 
 const DetailIdea = () => {
   const [ideaOne, setIdeaOne] = useState([]);
+  const [comment, setComment] = useState("");
   const { id } = useParams();
 
   const getFindOne = async () => {
@@ -17,6 +18,27 @@ const DetailIdea = () => {
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong");
+    }
+  };
+
+  const token = JSON.parse(localStorage.getItem("auth")).accessToken;
+
+  const handleComment = async (id) => {
+    try {
+      const res = await axios({
+        method: "post",
+        url: `http://localhost:8080/auth/comments/${id}`,
+        headers: {
+          "x-access-token": `${token}`,
+        },
+        data: { content: comment },
+      });
+      setComment("");
+      toast.success("Comment success");
+      getFindOne();
+    } catch (error) {
+      console.log(error);
+      toast.error("Comment err");
     }
   };
 
@@ -47,25 +69,31 @@ const DetailIdea = () => {
             className="flex flex-col justify-between pl-4"
             style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px" }}
           >
-            <div>
+            <div className="my-2">
               <p className="text-xl font-normal">
                 Title:
-                <span className="text-base font-light ">{ideaOne.title}</span>
-              </p>
-              <p className="text-xl font-normal">
-                Category:
-                <span className="text-base font-light">
-                  {" "}
-                  {ideaOne.category?.name}{" "}
+                <span className="text-base font-light pl-2 ">
+                  {ideaOne.title}
                 </span>
               </p>
               <p className="text-xl font-normal">
-                Content:{" "}
-                <span className="text-base font-light ">{ideaOne.content}</span>
+                Category:
+                <span className="text-base font-light pl-2">
+                  {ideaOne.category?.name}
+                </span>
+              </p>
+              <p
+                className="text-xl font-normal"
+                style={{ maxHeight: "250px", overflow: "auto" }}
+              >
+                Content:
+                <span className="text-base font-light pl-2 ">
+                  {ideaOne.content}
+                </span>
               </p>
               <p className="text-xl font-normal">
-                Submission{" "}
-                <span className="text-base font-light ">
+                Submission:
+                <span className="text-base font-light pl-2 ">
                   {ideaOne.submission?.name}
                 </span>
               </p>
@@ -83,26 +111,35 @@ const DetailIdea = () => {
           <input
             type="Text"
             placeholder="Enter Your Comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
             style={{
               border: "none",
               borderBottom: "1px solid black",
               outline: "none",
               backgroundColor: "transparent",
-              width: "89%",
+              width: "88%",
             }}
           />
-          <button className="btn btn-success mb-2 ml-2">Sent Comment</button>
+          <button
+            className="btn btn-success mb-2 ml-2"
+            onClick={() => handleComment(id)}
+          >
+            Send Comment
+          </button>
         </div>
-
-        {ideaOne.comments &&
-          ideaOne.comments.map((item, index) => (
-            <>
-              <p className="d-flex " style={{ width: "1000px" }}>
-                ( {moment(item.created_at).format("DD - MM - YYYY h:mm a")} ) -{" "}
-                <span className="ml-2">{item.content}</span>
-              </p>
-            </>
-          ))}
+        <div className="mb-5">
+          {ideaOne.comments &&
+            ideaOne.comments.map((item, index) => (
+              <>
+                <p key={index} className="d-flex " style={{ width: "1000px" }}>
+                  ( {moment(item.created_at).format("DD - MM - YYYY h:mm a")} )
+                  - <span className="ml-2">{item.content}</span>
+                </p>
+                <hr className="col-span-12" />
+              </>
+            ))}
+        </div>
       </div>
     </div>
   );
