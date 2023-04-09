@@ -128,18 +128,21 @@ const DetailIdea = () => {
             Send Comment
           </button>
         </div>
-        <div className="mb-5">
-          {ideaOne.comments &&
-            ideaOne.comments.map((item, index) => (
-              <>
-                <p key={index} className="d-flex " style={{ width: "1000px" }}>
-                  ( {moment(item.created_at).format("DD - MM - YYYY h:mm a")} )
-                  - <span className="ml-2">{item.content}</span>
+        {ideaOne.comments &&
+          ideaOne.comments.map((item, index) => (
+            <>
+            <div className="flex flex-row col-span-12">
+              <p className=" " 
+              // style={{ width: "1000px" }}
+              >
+                  ( {moment(item.created_at).format("DD - MM - YYYY h:mm a")} ) -{" "}
+                  <span className="ml-2">{item.content}</span>
                 </p>
-                <hr className="col-span-12" />
-              </>
-            ))}
-        </div>
+            </div>
+            <hr  className="col-span-12"/>
+
+            </>
+          ))}
       </div>
     </div>
   );
