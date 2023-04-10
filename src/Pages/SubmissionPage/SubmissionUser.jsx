@@ -4,6 +4,8 @@ import axios from "axios";
 import moment from "moment";
 import { toast } from "react-toastify";
 import Pagination from 'react-bootstrap/Pagination';
+import { AiFillRightCircle, AiFillLeftCircle } from "react-icons/ai";
+
 
 const SubmissionPage = () => {
   const [submission, setSubmission] = useState([]);
@@ -86,23 +88,20 @@ const SubmissionPage = () => {
       ))}
       
     </div>
-    <Pagination>
-      {/* <Pagination.First /> */}
-      <Pagination.Prev onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} />
-      {/* <Pagination.Item>{1}</Pagination.Item>
-      <Pagination.Ellipsis />
-
-      <Pagination.Item>{10}</Pagination.Item>
-      <Pagination.Item>{11}</Pagination.Item>
-      <Pagination.Item active>{12}</Pagination.Item>
-      <Pagination.Item>{13}</Pagination.Item>
-      <Pagination.Item disabled>{14}</Pagination.Item>
-
-      <Pagination.Ellipsis />
-      <Pagination.Item>{20}</Pagination.Item> */}
-      <Pagination.Next onClick={() => setCurrentPage(currentPage + 1)} />
-      {/* <Pagination.Last /> */}
-    </Pagination>
+    <div className="text-center text-2xl mb-2">
+        <button
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <AiFillLeftCircle />
+        </button>
+        <button
+          onClick={() => setCurrentPage(currentPage + 1)}
+          className="ml-2"
+        >
+          <AiFillRightCircle />
+        </button>
+      </div>
     </>
   );
 };

@@ -10,7 +10,7 @@ const ManageIdea = () => {
   const getAllIdea = async () => {
     try {
       const res = await axios.get("http://localhost:8080/admin/idea");
-      setIdeas(res.data);
+      setIdeas(res.data.docs);
     } catch (error) {
       console.log(error);
     }

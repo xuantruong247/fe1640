@@ -44,6 +44,7 @@ const DetailIdea = () => {
 
   useEffect(() => {
     getFindOne();
+    console.log(ideaOne);
   }, []);
 
   return (
@@ -105,7 +106,7 @@ const DetailIdea = () => {
         </div>
         <div id="cmt" className="mx-2 pt-10 col-span-12">
           <hr />
-          <label className="block text-black text-base mt-2" htmlFor="content">
+          <label className="block text-black text-base mt-2 font-bold" htmlFor="content">
             Your Comment
           </label>
           <input
@@ -122,7 +123,7 @@ const DetailIdea = () => {
             }}
           />
           <button
-            className="btn btn-success mb-2 ml-2"
+            className="btn btn-success mb-2 ml-2 "
             onClick={() => handleComment(id)}
           >
             Send Comment
@@ -131,16 +132,16 @@ const DetailIdea = () => {
         {ideaOne.comments &&
           ideaOne.comments.map((item, index) => (
             <>
-            <div className="flex flex-row col-span-12">
-              <p className=" " 
-              // style={{ width: "1000px" }}
-              >
-                  ( {moment(item.created_at).format("DD - MM - YYYY h:mm a")} ) -{" "}
-                  <span className="ml-2">{item.content}</span>
-                </p>
+            <div className="col-span-12">
+              <div className="">
+                <span className="font-bold">
+                  {moment(item.created_at).format("DD - MM - YYYY h:mm a")}  :{" "}
+                </span>
+                <span className="ml-2">{item.content}
+                </span>
+              </div>
             </div>
             <hr  className="col-span-12"/>
-
             </>
           ))}
       </div>

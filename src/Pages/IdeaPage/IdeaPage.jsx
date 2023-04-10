@@ -144,20 +144,20 @@ const IdeaPage = () => {
           ))}
         </tbody>
       </table>
-      <div className="text-center text-2xl mb-2">
-        <button
-          onClick={() => setCurrentPage(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <AiFillLeftCircle />
-        </button>
-        <button
-          onClick={() => setCurrentPage(currentPage + 1)}
-          className="ml-2"
-        >
-          <AiFillRightCircle />
-        </button>
-      </div>
+        <div className="text-center text-2xl mb-2">
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <AiFillLeftCircle />
+          </button>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="ml-2"
+          >
+            <AiFillRightCircle />
+          </button>
+        </div>
     </div>
   );
 };

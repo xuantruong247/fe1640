@@ -1,9 +1,12 @@
+import { AiFillRightCircle, AiFillLeftCircle } from "react-icons/ai";
 import axios from "axios";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { toast } from "react-toastify";
 import Pagination from 'react-bootstrap/Pagination';
+import { saveAs } from "file-saver";
+const JSZip = require("jszip");
 
 
 const SubmissionQA = () => {
@@ -17,36 +20,67 @@ const SubmissionQA = () => {
     try {
       const res = await axios.get(`http://localhost:8080/admin/submission?page=${currentPage}&limit=${pageSize}`);
       setSubmission(res.data.docs);
+
     } catch (error) {
       toast.error("Something went wrong");
       console.log(error);
     }
   };
-  const getAllidea = async () => {
-    try {
-      const res = await axios.get("http://localhost:8080/admin/idea");
-      setIdea(res.data);
-    } catch (error) {
-      console.log(error);
-      toast.error("err");
-    }
-  };
+
+  useEffect(() => {
+    getAllSub();
+  }, [currentPage, pageSize]);
   const convertJsonToExcel=()=>{
-    const worksheet=XLSX.utils.json_to_sheet(idea);
+    const worksheet=XLSX.utils.json_to_sheet(dataZip);
     const workBook=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workBook,worksheet,"idea")
     XLSX.write(workBook,{bookType:'xlsx',type:"buffer"})
     XLSX.write(workBook,{bookType:'xlsx',type:"binary"})
     XLSX.writeFile(workBook,"ideaData.xlsx")
   }
-
-  useEffect(() => {
-    getAllSub();
-    getAllidea();
-  }, [currentPage, pageSize]);
-
   const isDeadlineExpired = (deadline) => {
     return moment(deadline).isBefore(moment());
+  };
+  const getSubId = async (id) => {
+    try {
+      const res = await axios.get(`http://localhost:8080/user/idea/${id}`);
+      const arrUrl = res.data.map(item => item.image.url);
+      const arrName = res.data.map(item => item.title); // Lấy ra tên của từng idea
+      const zip = new JSZip();
+      try {
+        const responses = await Promise.all(
+          arrUrl.map((url) =>
+            axios.get(url, {
+              responseType: "arraybuffer",
+            })
+          )
+        );
+        for (let i = 0; i < responses.length; i++) {
+          const response = responses[i];
+          const data = await response.data;
+          const filename = arrName[i]; // Lấy tên của từng idea
+          const imgZip = new JSZip();
+          imgZip.file(`${filename}.png`, data); // Đặt tên file zip theo tên idea
+          const content = await imgZip.generateAsync({ type: "blob" });
+          saveAs(content, `${filename}.zip`); // Tải xuống file zip cho từng ảnh
+          zip.file(`${filename}.zip`, content);
+        }
+        const allContent = await zip.generateAsync({ type: "blob" });
+        saveAs(allContent, "SubFile.zip");
+      } catch (error) {
+        console.error("Failed to download files and create zip:", error);
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+      console.log(error);
+    }
+  };
+  const handlePreviousPage = () => {
+    setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
   };
 
   return (
@@ -95,11 +129,12 @@ const SubmissionQA = () => {
                   View Ideas
                 </button>
               </NavLink>
-              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-2 ">
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-2 "
+              onClick={() => getSubId(item._id)}>
                 Export ZIP
               </button>
               <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-2"
-                onClick={convertJsonToExcel}
+                onClick={() => convertJsonToExcel(item._id)}
               >
                 Export Excel
               </button>
@@ -109,23 +144,20 @@ const SubmissionQA = () => {
       ))}
       
     </div>
-    <Pagination>
-      {/* <Pagination.First /> */}
-      <Pagination.Prev onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} />
-      {/* <Pagination.Item>{1}</Pagination.Item>
-      <Pagination.Ellipsis />
-
-      <Pagination.Item>{10}</Pagination.Item>
-      <Pagination.Item>{11}</Pagination.Item>
-      <Pagination.Item active>{12}</Pagination.Item>
-      <Pagination.Item>{13}</Pagination.Item>
-      <Pagination.Item disabled>{14}</Pagination.Item>
-
-      <Pagination.Ellipsis />
-      <Pagination.Item>{20}</Pagination.Item> */}
-      <Pagination.Next onClick={() => setCurrentPage(currentPage + 1)} />
-      {/* <Pagination.Last /> */}
-    </Pagination>
+    <div className="text-center text-2xl mb-2">
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <AiFillLeftCircle />
+          </button>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="ml-2"
+          >
+            <AiFillRightCircle />
+          </button>
+        </div>
     </>
   );
 };

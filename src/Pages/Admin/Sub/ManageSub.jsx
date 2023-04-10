@@ -10,7 +10,7 @@ const ManageSub = () => {
   const getAllSub = async () => {
     try {
       const res = await axios.get("http://localhost:8080/admin/submission");
-      setSubmission(res.data);
+      setSubmission(res.data.docs);
     } catch (error) {
       toast.error("Something went wrong");
       console.log(error);

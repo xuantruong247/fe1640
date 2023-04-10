@@ -1,3 +1,4 @@
+import { AiFillRightCircle, AiFillLeftCircle } from "react-icons/ai";
 import Pagination from 'react-bootstrap/Pagination';
 import axios from "axios";
 import moment from "moment";
@@ -8,19 +9,17 @@ import FileSaver from "file-saver"
 import { saveAs } from "file-saver";
 const JSZip = require("jszip");
 
-
 const SubmissionAdmin = () => {
   const [submission, setSubmission] = useState([]);
   const [dataZip, setDataZip] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
-  const [arrUrl, setArrUrl] = useState([]);
+  // const [arrUrl, setArrUrl] = useState([]);
   const XLSX=require('xlsx');
   const getAllSub = async () => {
     try {
       const res = await axios.get(`http://localhost:8080/admin/submission?page=${currentPage}&limit=${pageSize}`);
-      setSubmission(res.data.docs);
-      
+      setSubmission(res.data.docs);      
     } catch (error) {
       toast.error("Something went wrong");
       console.log(error);
@@ -29,8 +28,10 @@ const SubmissionAdmin = () => {
   useEffect(() => {
     getAllSub();
   }, [currentPage, pageSize]);
-  const convertJsonToExcel=()=>{
-    const worksheet=XLSX.utils.json_to_sheet(dataZip);
+  const convertJsonToExcel= async (id)=>{
+    const res = await axios.get(`http://localhost:8080/user/idea/${id}`);
+    console.log(res.data);
+    const worksheet=XLSX.utils.json_to_sheet(res.data);
     const workBook=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workBook,worksheet,"idea")
     XLSX.write(workBook,{bookType:'xlsx',type:"buffer"})
@@ -40,70 +41,46 @@ const SubmissionAdmin = () => {
   const isDeadlineExpired = (deadline) => {
     return moment(deadline).isBefore(moment());
   };
+
   const getSubId = async (id) => {
     try {
       const res = await axios.get(`http://localhost:8080/user/idea/${id}`);
-      setDataZip(res.data);
-      exportZip(dataZip);
+      const arrUrl = res.data.map(item => item.image.url);
+      const arrName = res.data.map(item => item.title); // Lấy ra tên của từng idea
+      const zip = new JSZip();
+      try {
+        const responses = await Promise.all(
+          arrUrl.map((url) =>
+            axios.get(url, {
+              responseType: "arraybuffer",
+            })
+          )
+        );
+        for (let i = 0; i < responses.length; i++) {
+          const response = responses[i];
+          const data = await response.data;
+          const filename = arrName[i]; // Lấy tên của từng idea
+          const imgZip = new JSZip();
+          imgZip.file(`${filename}.png`, data); // Đặt tên file zip theo tên idea
+          const content = await imgZip.generateAsync({ type: "blob" });
+          saveAs(content, `${filename}.zip`); // Tải xuống file zip cho từng ảnh
+          zip.file(`${filename}.zip`, content);
+        }
+        const allContent = await zip.generateAsync({ type: "blob" });
+        saveAs(allContent, "SubFile.zip");
+      } catch (error) {
+        console.error("Failed to download files and create zip:", error);
+      }
     } catch (error) {
       toast.error("Something went wrong");
       console.log(error);
     }
   };
-  const exportZip = async () => {
-    const arrUrl = dataZip.map(item => item.image.url);
-      setArrUrl(arrUrl)
-      console.log(arrUrl);
-    const zip = new JSZip();
-    // const zipFiles = [];
-
-    // for (const url of arrUrl) {
-    //   const response = await axios.get(url, { responseType: "arraybuffer" });
-    //   const data = await response.data;
-    //   const filename = url.substring(url.lastIndexOf("/") + 1);
-    //   const zip = new JSZip();
-    //   zip.file(filename, data);
-    //   const content = await zip.generateAsync({ type: "arrayBuffer" });
-    //   zipFiles.push(content);
-    // }
-    // const zip = new JSZip();
-
-    // const imagesFolder = zip.folder("images");
-    // console.log(imagesFolder);
-
-    // for (const zipFile of zipFiles) {
-    //   const blob = await zipFile.blob();
-    //   const filename = "file_" + Date.now() + ".zip";
-    //   imagesFolder.file(filename, blob);
-    // }
-    // const content = await zip.generateAsync({ type: "arrayBuffer" });
-    // const blob = new Blob([content], { type: "application/zip" });
-    // saveAs(blob, "all_images.zip");
-
-    try {
-      const responses = await Promise.all(
-        arrUrl.map((url) =>
-          axios.get(url, {
-            responseType: "arraybuffer",
-          })
-        )
-      );
-      let i = 0;
-      for (const response of responses) {
-        const data = await response.data;
-        const filename = arrUrl[i].substring(arrUrl[i].lastIndexOf("/") + 1);
-        const zip = new JSZip();
-        zip.file(filename, data);
-        const content = await zip.generateAsync({ type: 'blob' });
-        // zipFiles.push(content);
-        saveAs(content, "images.zip");
-        i++;
-      }
-      // const content = await zip.generateAsync({ type: "blob" });
-      // console.log(zipFiles);
-    } catch (error) {
-      console.error("Failed to download files and create zip:", error);
-    }
+  const handlePreviousPage = () => {
+    setCurrentPage(currentPage - 1);
+  };
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
   };
   return (
     <>
@@ -166,23 +143,20 @@ const SubmissionAdmin = () => {
       ))}
 
     </div>
-    <Pagination>
-    {/* <Pagination.First /> */}
-    <Pagination.Prev onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1} />
-    {/* <Pagination.Item>{1}</Pagination.Item>
-    <Pagination.Ellipsis />
-
-    <Pagination.Item>{10}</Pagination.Item>
-    <Pagination.Item>{11}</Pagination.Item>
-    <Pagination.Item active>{12}</Pagination.Item>
-    <Pagination.Item>{13}</Pagination.Item>
-    <Pagination.Item disabled>{14}</Pagination.Item>
-
-    <Pagination.Ellipsis />
-    <Pagination.Item>{20}</Pagination.Item> */}
-    <Pagination.Next onClick={() => setCurrentPage(currentPage + 1)} />
-    {/* <Pagination.Last /> */}
-  </Pagination>
+    <div className="text-center text-2xl mb-2">
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <AiFillLeftCircle />
+          </button>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="ml-2"
+          >
+            <AiFillRightCircle />
+          </button>
+    </div>
   </>
   );
 };
