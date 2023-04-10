@@ -14,7 +14,6 @@ const SubmissionAdmin = () => {
   const [dataZip, setDataZip] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
-  // const [arrUrl, setArrUrl] = useState([]);
   const XLSX=require('xlsx');
   const getAllSub = async () => {
     try {
@@ -30,18 +29,30 @@ const SubmissionAdmin = () => {
   }, [currentPage, pageSize]);
   const convertJsonToExcel= async (id)=>{
     const res = await axios.get(`http://localhost:8080/user/idea/${id}`);
-    console.log(res.data);
-    const worksheet=XLSX.utils.json_to_sheet(res.data);
-    const workBook=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workBook,worksheet,"idea")
-    XLSX.write(workBook,{bookType:'xlsx',type:"buffer"})
-    XLSX.write(workBook,{bookType:'xlsx',type:"binary"})
-    XLSX.writeFile(workBook,"ideaData.xlsx")
+    const xlsx = require('xlsx');
+    const workbook = xlsx.utils.book_new();
+    const sheetName = 'Sheet1';
+    const sheet = xlsx.utils.json_to_sheet([], { header: ['Category', 'Submission', 'Title', 'Desc', 'Content', 'Likes', 'Dislikes', 'Views', 'Comments'] });
+    xlsx.utils.book_append_sheet(workbook, sheet, sheetName);
+    res.data.forEach((item) => {
+      const row = [];
+      row.push(item.category.name);
+      row.push(item.submission.name);
+      row.push(item.title);
+      row.push(item.desc);
+      row.push(item.content);
+      row.push(item.likes.length);
+      row.push(item.dislikes.length);
+      row.push(item.views.length);
+      row.push(item.comments.length);
+      xlsx.utils.sheet_add_aoa(sheet, [row], { origin: -1 });
+    });
+    const filename = 'DataSub.xlsx';
+    xlsx.writeFile(workbook, filename);
   }
   const isDeadlineExpired = (deadline) => {
     return moment(deadline).isBefore(moment());
   };
-
   const getSubId = async (id) => {
     try {
       const res = await axios.get(`http://localhost:8080/user/idea/${id}`);
